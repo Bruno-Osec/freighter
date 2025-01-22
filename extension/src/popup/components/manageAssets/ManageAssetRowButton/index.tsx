@@ -1,42 +1,45 @@
+import { stellarSdkServer } from "@shared/api/helpers/stellarSdkServer";
+import { NETWORKS } from "@shared/constants/stellar";
+import { Button, Icon, CopyText } from "@stellar/design-system";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Networks, StrKey } from "stellar-sdk";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { Button, Icon, CopyText } from "@stellar/design-system";
 
 import { AppDispatch } from "popup/App";
 import { navigateTo } from "popup/helpers/navigate";
-import { stellarSdkServer } from "@shared/api/helpers/stellarSdkServer";
-import { emitMetric } from "helpers/metrics";
+
+// import { emitMetric } from "helpers/metrics";
 import { getCanonicalFromAsset } from "helpers/stellar";
-import { getManageAssetXDR } from "popup/helpers/getManageAssetXDR";
+// import { getManageAssetXDR } from "popup/helpers/getManageAssetXDR";
 import { checkForSuspiciousAsset } from "popup/helpers/checkForSuspiciousAsset";
 import { isAssetSuspicious, scanAsset } from "popup/helpers/blockaid";
-import { METRIC_NAMES } from "popup/constants/metricsNames";
+// import { METRIC_NAMES } from "popup/constants/metricsNames";
 import {
   publicKeySelector,
-  hardwareWalletTypeSelector,
+  // hardwareWalletTypeSelector,
   addTokenId,
 } from "popup/ducks/accountServices";
 import { settingsNetworkDetailsSelector } from "popup/ducks/settings";
 import {
-  getAccountBalances,
-  resetSubmission,
-  signFreighterTransaction,
-  submitFreighterTransaction,
+  // getAccountBalances,
+  // resetSubmission,
+  // signFreighterTransaction,
+  // submitFreighterTransaction,
   transactionSubmissionSelector,
-  startHwSign,
+  // startHwSign,
   removeTokenId,
   resetSubmitStatus,
 } from "popup/ducks/transactionSubmission";
 import { ActionStatus } from "@shared/api/types";
-import { NETWORKS } from "@shared/constants/stellar";
+
 import { ROUTES } from "popup/constants/routes";
 
 import IconAdd from "popup/assets/icon-add.svg";
 import IconRemove from "popup/assets/icon-remove.svg";
 import IconEllipsis from "popup/assets/icon-ellipsis.svg";
+import { useChangeTrustline } from "popup/helpers/useChangeTrustline";
 
 import { TrustlineError } from "../TrustlineError";
 
@@ -92,104 +95,114 @@ export const ManageAssetRowButton = ({
   const [isSigningWithHardwareWallet, setIsSigningWithHardwareWallet] =
     useState(false);
   const { submitStatus } = useSelector(transactionSubmissionSelector);
-  const walletType = useSelector(hardwareWalletTypeSelector);
+  // const walletType = useSelector(hardwareWalletTypeSelector);
   const networkDetails = useSelector(settingsNetworkDetailsSelector);
   const publicKey = useSelector(publicKeySelector);
 
-  const isHardwareWallet = !!walletType;
+  // const isHardwareWallet = !!walletType;
   const ManageAssetRowDropdownRef = useRef<HTMLDivElement>(null);
   const server = stellarSdkServer(
     networkDetails.networkUrl,
     networkDetails.networkPassphrase,
   );
 
+  const { changeTrustline } = useChangeTrustline({
+    assetCode: code,
+    assetIssuer: issuer,
+    recommendedFee,
+    setAssetSubmitting,
+    setIsSigningWithHardwareWallet,
+    setIsTrustlineErrorShowing,
+    setRowButtonShowing,
+  });
+
   const handleBackgroundClick = () => {
     setRowButtonShowing("");
   };
   const canonicalAsset = getCanonicalFromAsset(code, issuer);
 
-  const signAndSubmit = async (
-    transactionXDR: string,
-    trackChangeTrustline: () => void,
-    successfulCallback?: () => Promise<void>,
-  ) => {
-    const res = await dispatch(
-      signFreighterTransaction({
-        transactionXDR,
-        network: networkDetails.networkPassphrase,
-      }),
-    );
+  // const signAndSubmit = async (
+  //   transactionXDR: string,
+  //   trackChangeTrustline: () => void,
+  //   successfulCallback?: () => Promise<void>,
+  // ) => {
+  //   const res = await dispatch(
+  //     signFreighterTransaction({
+  //       transactionXDR,
+  //       network: networkDetails.networkPassphrase,
+  //     }),
+  //   );
 
-    if (signFreighterTransaction.fulfilled.match(res)) {
-      const submitResp = await dispatch(
-        submitFreighterTransaction({
-          publicKey,
-          signedXDR: res.payload.signedTransaction,
-          networkDetails,
-        }),
-      );
+  //   if (signFreighterTransaction.fulfilled.match(res)) {
+  //     const submitResp = await dispatch(
+  //       submitFreighterTransaction({
+  //         publicKey,
+  //         signedXDR: res.payload.signedTransaction,
+  //         networkDetails,
+  //       }),
+  //     );
 
-      if (submitFreighterTransaction.fulfilled.match(submitResp)) {
-        dispatch(
-          getAccountBalances({
-            publicKey,
-            networkDetails,
-          }),
-        );
-        trackChangeTrustline();
-        dispatch(resetSubmission());
-        if (successfulCallback) {
-          await successfulCallback();
-        }
-      }
+  //     if (submitFreighterTransaction.fulfilled.match(submitResp)) {
+  //       dispatch(
+  //         getAccountBalances({
+  //           publicKey,
+  //           networkDetails,
+  //         }),
+  //       );
+  //       trackChangeTrustline();
+  //       dispatch(resetSubmission());
+  //       if (successfulCallback) {
+  //         await successfulCallback();
+  //       }
+  //     }
 
-      if (submitFreighterTransaction.rejected.match(submitResp)) {
-        setIsTrustlineErrorShowing(true);
-      }
+  //     if (submitFreighterTransaction.rejected.match(submitResp)) {
+  //       setIsTrustlineErrorShowing(true);
+  //     }
 
-      setAssetSubmitting("");
-      setRowButtonShowing("");
-    }
-  };
+  //     setAssetSubmitting("");
+  //     setRowButtonShowing("");
+  //   }
+  // };
 
-  const changeTrustline = async (
-    addTrustline: boolean,
-    successfulCallback?: () => Promise<void>,
-  ) => {
-    setAssetSubmitting(canonicalAsset);
+  // const changeTrustline = async (
+  //   addTrustline: boolean,
+  //   successfulCallback?: () => Promise<void>,
+  // ) => {
+  //   setAssetSubmitting(canonicalAsset);
 
-    const transactionXDR: string = await getManageAssetXDR({
-      publicKey,
-      assetCode: code,
-      assetIssuer: issuer,
-      addTrustline,
-      server,
-      recommendedFee,
-      networkDetails,
-    });
+  //   const transactionXDR: string = await getManageAssetXDR({
+  //     publicKey,
+  //     assetCode: code,
+  //     assetIssuer: issuer,
+  //     addTrustline,
+  //     server,
+  //     recommendedFee,
+  //     networkDetails,
+  //   });
 
-    const trackChangeTrustline = () => {
-      emitMetric(
-        addTrustline
-          ? METRIC_NAMES.manageAssetAddAsset
-          : METRIC_NAMES.manageAssetRemoveAsset,
-        { code, issuer },
-      );
-    };
+  //   const trackChangeTrustline = () => {
+  //     emitMetric(
+  //       addTrustline
+  //         ? METRIC_NAMES.manageAssetAddAsset
+  //         : METRIC_NAMES.manageAssetRemoveAsset,
+  //       { code, issuer },
+  //     );
+  //   };
 
-    if (isHardwareWallet) {
-      // eslint-disable-next-line
-      await dispatch(startHwSign({ transactionXDR, shouldSubmit: true }));
-      setIsSigningWithHardwareWallet(true);
-      trackChangeTrustline();
-    } else {
-      await signAndSubmit(
-        transactionXDR,
-        trackChangeTrustline,
-        successfulCallback,
-      );
-    }
-  };
+  //   if (isHardwareWallet) {
+  //     // eslint-disable-next-line
+  //     await dispatch(startHwSign({ transactionXDR, shouldSubmit: true }));
+  //     setIsSigningWithHardwareWallet(true);
+  //     trackChangeTrustline();
+  //   } else {
+  //     await signAndSubmit(
+  //       transactionXDR,
+  //       trackChangeTrustline,
+  //       successfulCallback,
+  //     );
+  //   }
+  // };
 
   const handleRowClick = async (
     assetRowData = {
@@ -229,6 +242,8 @@ export const ManageAssetRowButton = ({
       setSuspiciousAssetData(assetRowData);
       setAssetSubmitting("");
     } else {
+      console.log("> > > > > > > > >  handleRowClick changeTrustline OOOO !!!");
+      // TODO: It's also adding Trustline here, review it
       changeTrustline(!isTrustlineActive, () =>
         Promise.resolve(navigateTo(ROUTES.account)),
       );
@@ -246,6 +261,12 @@ export const ManageAssetRowButton = ({
   ) => {
     const contractId = assetRowData.contract;
     setAssetSubmitting(canonicalAsset || contractId);
+
+    console.log(
+      "> > > > > > > > >  handleTokenRowClick isTrustlineActive: ",
+      isTrustlineActive,
+    );
+
     if (!isTrustlineActive) {
       const addSac = async () => {
         const addToken = async () => {
@@ -259,9 +280,20 @@ export const ManageAssetRowButton = ({
 
           navigateTo(ROUTES.account);
         };
+
+        console.log(
+          "> > > > > > > > >  handleTokenRowClick assetRowData: ",
+          assetRowData,
+        );
         if (StrKey.isValidEd25519PublicKey(assetRowData.issuer)) {
+          console.log(
+            "> > > > > > > > >  handleTokenRowClick changeTrustline !!!",
+          );
+
+          // TODO: HERE is where it's adding the trustline
           await changeTrustline(true, addToken);
         } else {
+          console.log("> > > > > > > > >  handleTokenRowClick addToken !!!");
           await addToken();
         }
       };
@@ -400,7 +432,9 @@ export const ManageAssetRowButton = ({
           type="button"
           data-testid="ManageAssetRowButton"
         >
-          <div className="ManageAssetRowButton__label">{t("Add")}</div>
+          <div className="ManageAssetRowButton__label">
+            {t("Add aaassssetttt")}
+          </div>
           <img src={IconAdd} alt="icon add" />
         </Button>
       )}
